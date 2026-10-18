@@ -164,7 +164,8 @@ var LabelPlus;
         OptionOutputType[OptionOutputType["TIFF"] = 1] = "TIFF";
         OptionOutputType[OptionOutputType["PNG"] = 2] = "PNG";
         OptionOutputType[OptionOutputType["JPG"] = 3] = "JPG";
-        OptionOutputType[OptionOutputType["_count"] = 4] = "_count";
+        OptionOutputType[OptionOutputType["PSB"] = 4] = "PSB";
+        OptionOutputType[OptionOutputType["_count"] = 5] = "_count";
     })(OptionOutputType = LabelPlus.OptionOutputType || (LabelPlus.OptionOutputType = {}));
     ;
     var ImageInfo = /** @class */ (function () {
@@ -9021,7 +9022,7 @@ var LabelPlus;
         IMAGE: "bg",
         DIALOG_OVERLAY: "dialog-overlay"
     };
-    LabelPlus.image_suffix_list = [".psd", ".png", ".jpg", ".jpeg", ".tif", ".tiff"];
+    LabelPlus.image_suffix_list = [".psd", ".psb", ".png", ".jpg", ".jpeg", ".tif", ".tiff"];
     function GetScriptPath() {
         return $.fileName;
     }
@@ -9624,12 +9625,29 @@ var LabelPlus;
     function closeImage(img, saveType) {
         if (saveType === void 0) { saveType = LabelPlus.OptionOutputType.PSD; }
         LabelPlus.assert(opts !== null);
-        var fileOut = new File(opts.target + LabelPlus.dirSeparator + img.name);
+        var outputName = img.name;
+        if (saveType === LabelPlus.OptionOutputType.PSB) {
+            var dotPos = outputName.lastIndexOf(".");
+            outputName = (dotPos !== -1 ? outputName.substring(0, dotPos) : outputName) + ".psb";
+        }
+        var fileOut = new File(opts.target + LabelPlus.dirSeparator + outputName);
         var asCopy = false;
         var options;
         switch (saveType) {
             case LabelPlus.OptionOutputType.PSD:
                 options = PhotoshopSaveOptions;
+                break;
+            case LabelPlus.OptionOutputType.PSB:
+            if (typeof LargeDocumentFormatSaveOptions !== "undefined") {
+              options = LargeDocumentFormatSaveOptions;
+            }
+            else if (typeof LargeDocumentFormatOptions !== "undefined") {
+              options = LargeDocumentFormatOptions;
+            }
+            else {
+              // Fallback: avoid runtime error on old PS versions.
+              options = PhotoshopSaveOptions;
+            }
                 break;
             case LabelPlus.OptionOutputType.TIFF:
                 options = TiffSaveOptions;
